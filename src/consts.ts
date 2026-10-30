@@ -26,7 +26,7 @@ export const SITE = {
   },
   // 검색엔진 소유확인 코드 (HTML 태그 방식). 값이 있으면 <head>에 meta로 출력됩니다.
   verification: {
-    naver: '',
+    naver: '6e96b673b91db0a8c8b75c26b851ff98f7ba9b7a',
     google: 'Aq4OqdhVfDl7t1iPCmNwrM67n-7pnICAgYvGA9oc4tU',
   },
 } as const;
