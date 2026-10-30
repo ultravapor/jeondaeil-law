@@ -1,0 +1,43 @@
+# 전대일 변호사 robots.txt
+# 검색 접근 허용은 색인·순위·AI 인용을 보장하지 않습니다.
+# OAI-SearchBot(검색)과 GPTBot(학습)은 독립 설정입니다. 기존 허용 정책을 유지합니다.
+# https://developers.openai.com/api/docs/bots
+# 크롤러 명단은 변합니다. 분기마다 각사 문서로 갱신하세요.
+
+# 일반 검색엔진
+User-agent: *
+Allow: /
+
+# 네이버
+User-agent: Yeti
+Allow: /
+
+# AI — 학습
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+# AI — 검색 색인
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+# AI — 사용자 요청에 따른 열람 (검색 허용을 대신하지 않음)
+User-agent: ChatGPT-User
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+User-agent: Claude-User
+Allow: /
+
+Sitemap: https://ywdaeillaw.com/sitemap-index.xml

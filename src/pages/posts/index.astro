@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CATEGORIES, type Category } from '../../consts';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
+  (a, b) => (b.data.updatedDate ?? b.data.pubDate).valueOf() - (a.data.updatedDate ?? a.data.pubDate).valueOf(),
+);
+// JS 없이도 읽히도록 분야별 섹션으로 나눠 정적으로 렌더링합니다.
+const groups = (Object.keys(CATEGORIES) as Category[])
+  .map((key) => ({ key, label: CATEGORIES[key], items: posts.filter((p) => p.data.category === key) }))
+  .filter((g) => g.items.length > 0);
+---
+
+<BaseLayout
+  title="형사사건 질문별 글 모음"
+  description="성범죄, 수사·재판 절차, 조세형사, 손해배상 사건에서 상담 때 자주 받는 질문을 전대일 변호사가 하나씩 정리한 글 모음입니다."
+>
+  <div class="wrap narrow article">
+    <header class="article-head">
+      <h1>질문별 글 모음</h1>
+      <p class="byline">상담에서 자주 받는 질문을 사건 유형별로 정리합니다.</p>
+    </header>
+    <nav class="tabs" aria-label="분야">
+      {groups.map((g) => <a href={`#${g.key}`}>{g.label}</a>)}
+    </nav>
+    {groups.map((g) => (
+      <section id={g.key} class="post-group">
+        <h2>{g.label}</h2>
+        <ul class="post-list">
+          {g.items.map((p) => (
+            <li>
+              <a href={`/posts/${p.id}/`}>
+                <span class="pt">{p.data.title}</span>
+                <span class="pd">{p.data.description}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

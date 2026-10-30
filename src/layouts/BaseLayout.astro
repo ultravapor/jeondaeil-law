@@ -1,0 +1,169 @@
+---
+import { SITE, NAV } from '../consts';
+import Analytics from '@vercel/analytics/astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** canonical/og:url 계산용. 미지정 시 현재 경로 사용 */
+  path?: string;
+  ogType?: 'website' | 'article';
+  /** 페이지 고유 JSON-LD (Article, FAQPage 등) */
+  jsonLd?: Record<string, any>[];
+}
+
+const {
+  title,
+  description = SITE.description,
+  path = Astro.url.pathname,
+  ogType = 'website',
+  jsonLd = [],
+} = Astro.props;
+
+const canonicalUrl = new URL(path, Astro.site);
+canonicalUrl.search = '';
+canonicalUrl.hash = '';
+canonicalUrl.pathname = `${canonicalUrl.pathname.replace(/\/+$/, '')}/`;
+const canonical = canonicalUrl.href;
+const fullTitle = title === SITE.name ? `${SITE.name} — 형사법 전문 변호사` : `${title} | ${SITE.name}`;
+const ogImage = new URL('/og.jpg', Astro.site).href;
+
+// 전역 엔티티 그래프: 변호사(Person) · 상담 창구(LegalService) · 소속 법인(Organization) · 사이트(WebSite).
+// 어디서나 같은 @id로 참조합니다 (엔티티 분열 방지).
+const id = (frag: string) => new URL(`/#${frag}`, Astro.site).href;
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': id('lawyer'),
+      name: SITE.lawyer.name,
+      alternateName: SITE.name,
+      jobTitle: SITE.lawyer.jobTitle,
+      description: SITE.description,
+      url: Astro.site?.href,
+      image: new URL('/profile.jpg', Astro.site).href,
+      worksFor: { '@id': id('firm') },
+      knowsAbout: ['형사법', '손해배상', '성범죄 사건', '조세범칙조사', '경찰 조사 대응'],
+      hasCredential: [
+        { '@type': 'EducationalOccupationalCredential', name: '제51회 사법시험 합격 (2009)' },
+        { '@type': 'EducationalOccupationalCredential', name: '사법연수원 제41기 수료 (2011)' },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          name: '대한변호사협회 등록 전문분야: 형사법, 손해배상',
+          recognizedBy: { '@type': 'Organization', name: '대한변호사협회' },
+        },
+      ],
+      sameAs: [SITE.blog],
+    },
+    {
+      '@type': 'LegalService',
+      '@id': id('office'),
+      name: `${SITE.name} (${SITE.lawyer.firm})`,
+      url: Astro.site?.href,
+      telephone: SITE.phoneTel,
+      image: new URL('/profile.jpg', Astro.site).href,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: SITE.address.street,
+        addressLocality: SITE.address.locality,
+        addressRegion: SITE.address.region,
+        addressCountry: SITE.address.country,
+      },
+      areaServed: '대한민국',
+      employee: { '@id': id('lawyer') },
+      parentOrganization: { '@id': id('firm') },
+    },
+    {
+      '@type': 'Organization',
+      '@id': id('firm'),
+      name: SITE.lawyer.firm,
+      url: SITE.lawyer.firmUrl,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': id('website'),
+      url: Astro.site?.href,
+      name: SITE.name,
+      description: SITE.description,
+      inLanguage: 'ko-KR',
+      publisher: { '@id': id('lawyer') },
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    {SITE.verification.naver && <meta name="naver-site-verification" content={SITE.verification.naver} />}
+    {SITE.verification.google && <meta name="google-site-verification" content={SITE.verification.google} />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(graph)} />
+    {jsonLd.map((block) => <script type="application/ld+json" set:html={JSON.stringify(block)} />)}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">{SITE.name}<span>형사법 전문</span></a>
+        <nav class="nav" aria-label="주요 메뉴">
+          {NAV.map((n) => <a href={n.href}>{n.label}</a>)}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p class="footer-name">{SITE.name} · {SITE.lawyer.firm}</p>
+        <p>{SITE.address.full} · <a href={`tel:${SITE.phone}`} data-track="call_click">{SITE.phone}</a></p>
+        <p>광고책임변호사: {SITE.lawyer.name} · <a href={SITE.blog} rel="noopener" target="_blank">네이버 블로그</a></p>
+        <p class="note">이 사이트의 글은 일반적인 법률 정보이며, 구체적 사건에 대한 법률 자문을 대신하지 않습니다. 사건마다 사실관계가 달라 결과가 달라질 수 있습니다.</p>
+        <p class="note">© {new Date().getFullYear()} {SITE.name}</p>
+      </div>
+    </footer>
+
+    <a class="call-bar" href={`tel:${SITE.phone}`} data-track="call_click">
+      <span>전화 상담 문의</span>
+      <strong>{SITE.phone}</strong>
+    </a>
+
+    <Analytics />
+    <script>
+      import { track } from '@vercel/analytics';
+      // 전화 클릭 = 이 사이트의 전환. 위치(헤더/본문/하단바)를 함께 기록합니다.
+      document.querySelectorAll<HTMLAnchorElement>('[data-track]').forEach((el) => {
+        el.addEventListener('click', () => {
+          track(el.dataset.track!, { place: el.dataset.place ?? el.className ?? 'link' });
+        });
+      });
+    </script>
+  </body>
+</html>
