@@ -12,7 +12,7 @@ const posts = defineCollection({
     description: z.string(),
     // 제목 바로 아래 직답. 한 줄 = 한 문장
     answer: z.string(),
-    category: z.enum(['sex', 'procedure', 'tax', 'damages']),
+    category: z.enum(['sex', 'procedure', 'assault', 'tax', 'damages']),
     faqs: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     // 법령 등 확인 가능한 1차 출처
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).default([]),

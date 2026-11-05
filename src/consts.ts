@@ -34,6 +34,7 @@ export const SITE = {
 export const CATEGORIES = {
   sex: '성범죄',
   procedure: '수사·재판 절차',
+  assault: '폭행·상해',
   tax: '조세형사',
   damages: '손해배상',
 } as const;
